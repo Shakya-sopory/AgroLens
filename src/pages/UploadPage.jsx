@@ -47,7 +47,7 @@ const UploadPage = () => {
       
       <div style={{ marginBottom: '2rem' }}>
         <h2 style={{ color: 'var(--primary-color)' }}>{t('takePhoto')}</h2>
-        <p style={{ marginTop: '0.5rem' }}>Ensure the affected area of the leaf is clearly visible.</p>
+        <p style={{ marginTop: '0.5rem' }}>{t('ensureVisibility')}</p>
       </div>
 
       {isProcessing ? (
@@ -60,7 +60,7 @@ const UploadPage = () => {
           <div className="video-container" style={{ background: '#f0f0f0', display: 'flex', justifyContent: 'center', alignItems: 'center', border: '2px dashed var(--border-color)', cursor: 'pointer' }} onClick={handleCaptureClick}>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', color: '#a0aec0' }}>
                <ImageIcon size={64} style={{ marginBottom: '1rem' }} />
-               <span>Tap to open camera</span>
+               <span>{t('tapOpen')}</span>
             </div>
           </div>
 

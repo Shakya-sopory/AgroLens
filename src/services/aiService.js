@@ -7,29 +7,29 @@ const mockOutcomes = [
     disease: "Late Blight Disease",
     confidence: 0.94,
     severity: "Critical",
-    treatment: "Immediately apply fungicides containing chlorothalonil or copper. Remove and destroy infected plants. Ensure good air circulation.",
-    explanation: "Spores easily spread in wet conditions. Found dark, water-soaked spots on leaves."
+    treatment: "treatment_lateBlight",
+    explanation: "explanation_lateBlight"
   },
   {
     disease: "Powdery Mildew Disease",
     confidence: 0.88,
     severity: "Medium",
-    treatment: "Apply sulfur-based fungicides or neem oil. Reduce humidity around plants and prune overcrowded areas.",
-    explanation: "White powdery fungal growth noticed on the leaf surface."
+    treatment: "treatment_powderyMildew",
+    explanation: "explanation_powderyMildew"
   },
   {
     disease: "Nitrogen Deficiency Plant",
     confidence: 0.97,
     severity: "Low",
-    treatment: "Apply a nitrogen-rich fertilizer (e.g., blood meal or urea). Ensure adequate soil moisture for nutrient uptake.",
-    explanation: "General yellowing observed on older leaves, extending to the rest of the plant."
+    treatment: "treatment_nitrogen",
+    explanation: "explanation_nitrogen"
   },
   {
     disease: "Healthy Crop Leaf",
     confidence: 0.99,
     severity: "Low",
-    treatment: "No treatment required. Continue regular watering and maintenance.",
-    explanation: "Leaf structure and colors appear normal without visible pathogen markers."
+    treatment: "treatment_healthy",
+    explanation: "explanation_healthy"
   }
 ];
 

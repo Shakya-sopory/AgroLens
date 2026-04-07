@@ -60,14 +60,14 @@ const MapPage = () => {
              <div>
                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold' }}>
                  <AlertTriangle size={20} />
-                 Possible Outbreak Detected
+                 {t('outbreakDetected')}
                </div>
                <div style={{ fontSize: '0.9rem', marginTop: '4px' }}>
-                 {outbreakData.count} similar cases reported nearby
+                 {outbreakData.count} {t('similarCases')}
                </div>
              </div>
              <button onClick={() => setOutbreakData(null)} style={{ background: 'transparent', border: '1px solid #991B1B', padding: '0.25rem 0.5rem', borderRadius: '4px', cursor: 'pointer', color: '#991B1B' }}>
-               Dismiss
+               {t('dismiss')}
              </button>
            </div>
          )}
@@ -123,10 +123,10 @@ const MapPage = () => {
                }}
              >
                <Popup>
-                 {pin.isOutbreak && <><b style={{ color: '#E53E3E' }}>⚠️ Outbreak cluster</b><br /></>}
+                 {pin.isOutbreak && <><b style={{ color: '#E53E3E' }}>⚠️ {t('outbreakCluster')}</b><br /></>}
                  <b>Your Scan</b><br />
                  {t(pin.disease) || pin.disease}<br />
-                 Severity: {pin.severity}<br />
+                 Severity: {t(pin.severity.toLowerCase()) || pin.severity}<br />
                  {new Date(pin.timestamp).toLocaleDateString()}
                </Popup>
              </CircleMarker>

@@ -24,7 +24,15 @@ const ResultsPage = () => {
     let mounted = true;
     const runAnalysis = async () => {
       try {
-        const outcome = await analyzeImage(state.imageSrc);
+        // Yield to browser and compositor thread to safely establish the animation layer
+        await new Promise(resolve => setTimeout(resolve, 200));
+        
+        // Enforce 800ms minimum duration for spinner visibility
+        const [outcome] = await Promise.all([
+          analyzeImage(state.imageSrc),
+          new Promise(resolve => setTimeout(resolve, 800))
+        ]);
+        
         if (mounted) {
           setResult(outcome);
           setLoading(false);
@@ -92,14 +100,16 @@ const ResultsPage = () => {
   if (loading) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'center', alignItems: 'center', gap: '1.5rem' }}>
-        <Loader2 className="animate-spin" size={64} color="var(--primary-color)" />
-        <h2 style={{ textAlign: 'center' }}>{t('uploading')}</h2>
+        <div className="animate-spin" style={{ display: 'flex' }}>
+          <Loader2 size={64} color="var(--primary-color)" />
+        </div>
+        <h2 style={{ textAlign: 'center' }}>Analyzing...</h2>
       </div>
     );
   }
 
   const confidencePct = Math.round(result.confidence * 100);
-  const textForVoice = `${t('diagnosis')}: ${t(result.disease) || result.disease}. ${t('severity')}: ${t(result.severity.toLowerCase()) || result.severity}. ${t('treatment')}: ${result.treatment}`;
+  const textForVoice = `${t('diagnosis')}: ${t(result.disease) || result.disease}. ${t('severity')}: ${t(result.severity.toLowerCase()) || result.severity}. ${t('treatment')}: ${t(result.treatment)}`;
 
   return (
     <div style={{ paddingBottom: '2rem' }}>
@@ -120,14 +130,14 @@ const ResultsPage = () => {
         <div className="card" style={{ border: '1px solid var(--severity-critical)', background: '#FFF5F5' }}>
           <h2 style={{ color: 'var(--severity-critical)', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
             <AlertTriangle size={24} />
-            Invalid Image
+            {t('invalidImage')}
           </h2>
           <p style={{ color: 'var(--text-dark)' }}>
-            No crop detected. Please capture a plant or leaf image.
+            {t('noCropDetected')}
           </p>
           {result?.explanation && (
             <p style={{ color: 'var(--text-light)', fontSize: '0.85rem', marginTop: '12px', borderTop: '1px solid #FECACA', paddingTop: '8px' }}>
-              {result.explanation}
+              {result.explanation.replace('Real AI classified this as:', t('realAIClassified'))}
             </p>
           )}
         </div>
@@ -138,14 +148,14 @@ const ResultsPage = () => {
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold' }}>
                   <AlertTriangle size={20} />
-                  Possible Outbreak Detected
+                  {t('outbreakDetected')}
                 </div>
                 <div style={{ fontSize: '0.9rem', marginTop: '4px' }}>
-                  {outbreakData.count} similar cases reported nearby
+                  {outbreakData.count} {t('similarCases')}
                 </div>
               </div>
               <button onClick={() => setOutbreakData(null)} style={{ background: 'transparent', border: '1px solid #991B1B', padding: '0.25rem 0.5rem', borderRadius: '4px', cursor: 'pointer', color: '#991B1B' }}>
-                Dismiss
+                {t('dismiss')}
               </button>
             </div>
           )}
@@ -167,7 +177,7 @@ const ResultsPage = () => {
         
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--bg-color)', padding: '0.75rem', borderRadius: '8px' }}>
           <MapPin size={18} color={nearbyRisk === 'High' ? "var(--severity-critical)" : "var(--primary-color)"} />
-          <span className="text-semibold" style={{ fontSize: '0.875rem' }}>Nearby Risk: {nearbyRisk}</span>
+          <span className="text-semibold" style={{ fontSize: '0.875rem' }}>{t('nearbyRisk')}: {nearbyRisk === 'High' ? t('riskHigh') : t('riskLow')}</span>
         </div>
       </div>
 
@@ -177,11 +187,11 @@ const ResultsPage = () => {
           <AlertTriangle size={20} color="var(--severity-medium)" />
           {t('treatment')}
         </h3>
-        <p style={{ color: 'var(--text-dark)', fontSize: '1.05rem' }}>{result.treatment}</p>
+        <p style={{ color: 'var(--text-dark)', fontSize: '1.05rem' }}>{t(result.treatment)}</p>
         
         <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--border-color)', display: 'flex', gap: '8px' }}>
            <Info size={18} color="var(--text-light)" style={{ flexShrink: 0, marginTop: '2px' }} />
-           <p style={{ fontSize: '0.9rem' }}>{result.explanation}</p>
+           <p style={{ fontSize: '0.9rem' }}>{t(result.explanation)}</p>
         </div>
       </div>
 
@@ -191,8 +201,15 @@ const ResultsPage = () => {
       )}
       
       <style>{`
-        @keyframes spin { 100% { transform: rotate(360deg); } }
-        .animate-spin { animation: spin 1s linear infinite; }
+        @keyframes spin { 
+          from { transform: rotate(0deg) translateZ(0); } 
+          to { transform: rotate(360deg) translateZ(0); } 
+        }
+        .animate-spin { 
+          animation: spin 1s linear infinite; 
+          transform-origin: center;
+          will-change: transform;
+        }
       `}</style>
     </div>
   );
