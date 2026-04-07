@@ -30,13 +30,6 @@ const mockOutcomes = [
     severity: "Low",
     treatment: "No treatment required. Continue regular watering and maintenance.",
     explanation: "Leaf structure and colors appear normal without visible pathogen markers."
-  },
-  {
-    disease: "Unknown Image",
-    confidence: 0.45,
-    severity: "Low",
-    treatment: "No crop detected. Please capture an image of a plant.",
-    explanation: "The uploaded image does not contain identifiable crop features."
   }
 ];
 
@@ -58,7 +51,18 @@ export async function validateImageWithMobileNet(imageSrc) {
     const predictions = await mobileNetModel.classify(img);
     
     // Plant related keywords in Imagenet 1000
-    const plantKeywords = ['plant', 'leaf', 'flower', 'tree', 'crop', 'grass', 'daisy', 'pot', 'wood', 'vegetable', 'fruit', 'agriculture', 'garden', 'greenhouse', 'earthstar', 'mushroom'];
+    const plantKeywords = [
+      'plant', 'leaf', 'flower', 'tree', 'crop', 'grass', 'daisy', 'pot', 'wood', 'vegetable', 
+      'fruit', 'agriculture', 'garden', 'greenhouse', 'earthstar', 'mushroom', 'ear', 'spike', 
+      'capitulum', 'pineapple', 'cardoon', 'corn', 'wheat', 'grain', 'rice', 'seed', 'field', 
+      'hay', 'straw', 'vine', 'weed', 'fern', 'moss', 'fungus', 'stalk', 'stem', 'root', 
+      'branch', 'log', 'forest', 'meadow', 'pasture', 'spore', 'apple', 'orange', 'lemon', 
+      'banana', 'pepper', 'tomato', 'potato', 'cabbage', 'broccoli', 'cauliflower', 'zucchini', 
+      'cucumber', 'squash', 'pumpkin', 'melon', 'berry', 'grape', 'cherry', 'plum', 'peach', 
+      'pear', 'apricot', 'nut', 'almond', 'bean', 'pea', 'soybean', 'cotton', 'tobacco', 
+      'rose', 'orchid', 'lily', 'tulip', 'sunflower', 'dandelion', 'cactus', 'succulent', 
+      'palm', 'bamboo', 'reed', 'shrub', 'bush', 'herb', 'spice', 'ananas'
+    ];
     
     for (let p of predictions) {
       const className = p.className.toLowerCase();
