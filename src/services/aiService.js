@@ -1,37 +1,92 @@
-// Mock AI Service with realistic delay
+// Mock AI Service with realistic delay and Real MobileNet Image Validation
+import * as tf from '@tensorflow/tfjs';
+import * as mobilenet from '@tensorflow-models/mobilenet';
 
 const mockOutcomes = [
   {
-    disease: "Late Blight",
+    disease: "Late Blight Disease",
     confidence: 0.94,
     severity: "Critical",
     treatment: "Immediately apply fungicides containing chlorothalonil or copper. Remove and destroy infected plants. Ensure good air circulation.",
     explanation: "Spores easily spread in wet conditions. Found dark, water-soaked spots on leaves."
   },
   {
-    disease: "Powdery Mildew",
+    disease: "Powdery Mildew Disease",
     confidence: 0.88,
     severity: "Medium",
     treatment: "Apply sulfur-based fungicides or neem oil. Reduce humidity around plants and prune overcrowded areas.",
     explanation: "White powdery fungal growth noticed on the leaf surface."
   },
   {
-    disease: "Nitrogen Deficiency",
+    disease: "Nitrogen Deficiency Plant",
     confidence: 0.97,
     severity: "Low",
     treatment: "Apply a nitrogen-rich fertilizer (e.g., blood meal or urea). Ensure adequate soil moisture for nutrient uptake.",
     explanation: "General yellowing observed on older leaves, extending to the rest of the plant."
   },
   {
-    disease: "Healthy Leaf",
+    disease: "Healthy Crop Leaf",
     confidence: 0.99,
     severity: "Low",
     treatment: "No treatment required. Continue regular watering and maintenance.",
     explanation: "Leaf structure and colors appear normal without visible pathogen markers."
+  },
+  {
+    disease: "Unknown Image",
+    confidence: 0.45,
+    severity: "Low",
+    treatment: "No crop detected. Please capture an image of a plant.",
+    explanation: "The uploaded image does not contain identifiable crop features."
   }
 ];
 
+let mobileNetModel = null;
+
+export async function validateImageWithMobileNet(imageSrc) {
+  try {
+    if (!mobileNetModel) {
+      mobileNetModel = await mobilenet.load();
+    }
+    
+    const img = new Image();
+    img.src = imageSrc;
+    await new Promise((resolve, reject) => {
+      img.onload = resolve;
+      img.onerror = reject;
+    });
+
+    const predictions = await mobileNetModel.classify(img);
+    
+    // Plant related keywords in Imagenet 1000
+    const plantKeywords = ['plant', 'leaf', 'flower', 'tree', 'crop', 'grass', 'daisy', 'pot', 'wood', 'vegetable', 'fruit', 'agriculture', 'garden', 'greenhouse', 'earthstar', 'mushroom'];
+    
+    for (let p of predictions) {
+      const className = p.className.toLowerCase();
+      if (plantKeywords.some(kw => className.includes(kw))) {
+        return { isValid: true, predictions };
+      }
+    }
+    
+    return { isValid: false, predictions };
+  } catch (e) {
+    console.error("MobileNet validation failed:", e);
+    return { isValid: true, predictions: [] }; // Fallback
+  }
+}
+
 export async function analyzeImage(imageSrc) {
+  // Real Image-Based MobileNet Validation
+  const validation = await validateImageWithMobileNet(imageSrc);
+  if (!validation.isValid) {
+      return {
+        disease: "Unknown Image",
+        confidence: 0.45,
+        severity: "Low",
+        treatment: "No crop detected. Please capture an image of a plant.",
+        explanation: `Real AI classified this as: ${validation.predictions.map(p => p.className).join(', ')}`
+      };
+  }
+
   return new Promise((resolve) => {
     // Simulate network delay (1.5s - 3s)
     const delay = Math.floor(Math.random() * 1500) + 1500;

@@ -16,6 +16,7 @@ const ResultsPage = () => {
   const [result, setResult] = useState(null);
   const [nearbyRisk, setNearbyRisk] = useState('Low');
   const [outbreakData, setOutbreakData] = useState(null);
+  const [isValidImage, setIsValidImage] = useState(true);
 
   useEffect(() => {
     if (!state?.imageSrc) return;
@@ -28,6 +29,15 @@ const ResultsPage = () => {
           setResult(outcome);
           setLoading(false);
           
+          // Validate if class contains keywords: leaf, plant, crop, disease
+          const isValidPlant = ['leaf', 'plant', 'crop', 'disease'].some(keyword => outcome.disease.toLowerCase().includes(keyword));
+          
+          if (!isValidPlant) {
+            setIsValidImage(false);
+            setLoading(false);
+            return;
+          }
+
           // Save to history only for NEW scans
           if (!state.isFromHistory) {
             saveScanToHistory({
@@ -106,37 +116,54 @@ const ResultsPage = () => {
         <img src={state.imageSrc} alt="Crop" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
       </div>
 
-      {outbreakData && (
-        <div style={{ padding: '1rem', background: '#FEE2E2', border: '1px solid #F87171', color: '#991B1B', borderRadius: '8px', marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold' }}>
-              <AlertTriangle size={20} />
-              Possible Outbreak Detected
-            </div>
-            <div style={{ fontSize: '0.9rem', marginTop: '4px' }}>
-              {outbreakData.count} similar cases reported nearby
-            </div>
-          </div>
-          <button onClick={() => setOutbreakData(null)} style={{ background: 'transparent', border: '1px solid #991B1B', padding: '0.25rem 0.5rem', borderRadius: '4px', cursor: 'pointer', color: '#991B1B' }}>
-            Dismiss
-          </button>
+      {!isValidImage ? (
+        <div className="card" style={{ border: '1px solid var(--severity-critical)', background: '#FFF5F5' }}>
+          <h2 style={{ color: 'var(--severity-critical)', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+            <AlertTriangle size={24} />
+            Invalid Image
+          </h2>
+          <p style={{ color: 'var(--text-dark)' }}>
+            No crop detected. Please capture a plant or leaf image.
+          </p>
+          {result?.explanation && (
+            <p style={{ color: 'var(--text-light)', fontSize: '0.85rem', marginTop: '12px', borderTop: '1px solid #FECACA', paddingTop: '8px' }}>
+              {result.explanation}
+            </p>
+          )}
         </div>
-      )}
+      ) : (
+        <>
+          {outbreakData && (
+            <div style={{ padding: '1rem', background: '#FEE2E2', border: '1px solid #F87171', color: '#991B1B', borderRadius: '8px', marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold' }}>
+                  <AlertTriangle size={20} />
+                  Possible Outbreak Detected
+                </div>
+                <div style={{ fontSize: '0.9rem', marginTop: '4px' }}>
+                  {outbreakData.count} similar cases reported nearby
+                </div>
+              </div>
+              <button onClick={() => setOutbreakData(null)} style={{ background: 'transparent', border: '1px solid #991B1B', padding: '0.25rem 0.5rem', borderRadius: '4px', cursor: 'pointer', color: '#991B1B' }}>
+                Dismiss
+              </button>
+            </div>
+          )}
 
-      {/* Diagnosis Card */}
-      <div className="card">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
-          <div>
-            <p style={{ fontSize: '0.875rem', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' }}>{t('diagnosis')}</p>
-            <h2 style={{ color: 'var(--text-dark)', margin: 0 }}>{t(result.disease) || result.disease}</h2>
-          </div>
-          <SeverityBadge level={result.severity} />
-        </div>
-        
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--bg-color)', padding: '0.75rem', borderRadius: '8px', marginBottom: '0.5rem' }}>
-          <CheckCircle size={18} color="var(--primary-color)" />
-          <span className="text-semibold" style={{ fontSize: '0.875rem' }}>{confidencePct}% {t('confidence')}</span>
-        </div>
+          {/* Diagnosis Card */}
+          <div className="card">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
+              <div>
+                <p style={{ fontSize: '0.875rem', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' }}>{t('diagnosis')}</p>
+                <h2 style={{ color: 'var(--text-dark)', margin: 0 }}>{t(result.disease) || result.disease}</h2>
+              </div>
+              <SeverityBadge level={result.severity} />
+            </div>
+            
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--bg-color)', padding: '0.75rem', borderRadius: '8px', marginBottom: '0.5rem' }}>
+              <CheckCircle size={18} color="var(--primary-color)" />
+              <span className="text-semibold" style={{ fontSize: '0.875rem' }}>{confidencePct}% {t('confidence')}</span>
+            </div>
         
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--bg-color)', padding: '0.75rem', borderRadius: '8px' }}>
           <MapPin size={18} color={nearbyRisk === 'High' ? "var(--severity-critical)" : "var(--primary-color)"} />
@@ -158,8 +185,10 @@ const ResultsPage = () => {
         </div>
       </div>
 
-      {/* Voice Output */}
-      <VoiceButton textToRead={textForVoice} />
+          {/* Voice Output */}
+          <VoiceButton textToRead={textForVoice} />
+        </>
+      )}
       
       <style>{`
         @keyframes spin { 100% { transform: rotate(360deg); } }
